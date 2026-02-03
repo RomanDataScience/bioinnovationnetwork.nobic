@@ -16,21 +16,39 @@
             background-color: #f8f9fa; 
             display: flex; flex-direction: column; align-items: center; 
         }
+        
         #header { width: 100%; max-width: 1100px; margin-bottom: 25px; }
+        
+        /* Your Bold H1 Header */
         .main-title { 
-            margin: 0; font-size: 32px; font-weight: 800; color: #004a99; letter-spacing: -1px; 
+            margin: 0; 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: #004a99; 
+            letter-spacing: -1px; 
+            text-transform: lowercase;
         }
+
         #map { 
-            height: 600px; width: 100%; max-width: 1100px; 
-            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; 
+            height: 600px; 
+            width: 100%; 
+            max-width: 1100px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            background: #e9ecef; 
+        }
+
+        /* Ensuring the custom SVG icon displays correctly */
+        .custom-mardi-gras svg {
+            filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.3));
         }
     </style>
 </head>
 <body>
 
     <div id="header">
-        <h1 class="main-title">bioinnovationnetwork-nobic</h1>
-        <p>NOBIC Hub is marked in <strong>Purple</strong> with <strong>English Green</strong> connections.</p>
+        <h1 class="main-title"># bioinnovationnetwork-nobic</h1>
+        <p>Purple/Green/Gold marker: NOBIC Hub | Blue lines: Network Connections</p>
     </div>
 
     <div id="map"></div>
@@ -40,26 +58,32 @@
     <script src="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.min.js"></script>
 
     <script>
+        // Initialize Map
         var map = L.map('map').setView([30.1, -90.5], 8);
 
+        // Map Background
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // 1. PROFESSIONAL PURPLE ICON (Standard Pin Shape)
-        var purpleIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
+        // 1. Custom SVG Icon (Purple body, English Green border, Gold center dot)
+        var mardiGrasIcon = L.divIcon({
+            className: 'custom-mardi-gras',
+            html: `<svg width="30" height="42" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 0C6.71 0 0 6.71 0 15c0 10.5 15 27 15 27s15-16.5 15-27c0-8.29-6.71-15-15-15z" 
+                          fill="#800080" stroke="#013220" stroke-width="2"/>
+                    <circle cx="15" cy="15" r="5" fill="#FFD700" />
+                   </svg>`,
+            iconSize: [30, 42],
+            iconAnchor: [15, 42],
+            popupAnchor: [0, -40]
         });
 
+        // Layer Groups for Toggles
         var layerGroups = { "Connections": L.layerGroup().addTo(map) };
         var allMarkersForSearch = L.layerGroup();
 
-        // Standard Leaflet Icon Fix for other markers
+        // Fix default blue marker icons
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -67,10 +91,12 @@
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
         });
 
+        // Gray square fix
         window.addEventListener('load', function() {
             setTimeout(function() { map.invalidateSize(); }, 500);
         });
 
+        // Parse CSV
         Papa.parse("data.csv", {
             download: true,
             header: true,
@@ -94,33 +120,35 @@
 
                     var markerOptions = { title: row.name };
                     if (isHub) {
-                        markerOptions.icon = purpleIcon;
+                        markerOptions.icon = mardiGrasIcon;
                         markerOptions.zIndexOffset = 1000;
                         hubPos = pos;
                     }
 
                     var marker = L.marker(pos, markerOptions)
-                                  .bindPopup("<b>" + row.name + "</b><br>" + row.description);
+                                  .bindPopup("<b style='color:#013220;'>" + row.name + "</b><br>" + row.description);
                     
                     marker.addTo(layerGroups[type]);
                     marker.addTo(allMarkersForSearch);
                     if (!isHub) others.push(pos);
                 });
 
-                // 2. ENGLISH GREEN CONNECTIONS
+                // Blue Connections
                 if (hubPos) {
                     others.forEach(function(p) {
                         L.polyline([hubPos, p], { 
-                            color: '#2e8b57', // Seafoam/Forest Green
+                            color: '#004a99', 
                             weight: 2, 
-                            opacity: 0.6, 
+                            opacity: 0.5, 
                             dashArray: '5, 10' 
                         }).addTo(layerGroups["Connections"]);
                     });
                 }
 
+                // Add Toggle Menu
                 L.control.layers(null, layerGroups, { collapsed: false }).addTo(map);
 
+                // Add Search Bar
                 var searchControl = new L.Control.Search({
                     layer: allMarkersForSearch,
                     propertyName: 'title',
