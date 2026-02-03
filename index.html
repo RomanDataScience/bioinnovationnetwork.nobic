@@ -120,15 +120,19 @@
                 }
 
                 L.control.layers(null, layerGroups, { collapsed: false }).addTo(map);
-
+                
                 var searchControl = new L.Control.Search({
                     layer: allMarkersForSearch,
                     propertyName: 'title',
                     marker: false,
                     initial: false,
-                    moveToLocation: function(latlng) { map.setView(latlng, 12); }
+                    textPlaceholder: 'Search by name...', // This adds the help line inside the bar
+                    moveToLocation: function(latlng) { 
+                        map.setView(latlng, 12); 
+                    }
                 });
                 map.addControl(searchControl);
+                
             }
         });
     </script>
