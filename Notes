@@ -2,16 +2,50 @@
 
 This is a light, grayscale map. It is perfect if you want your Purple and Grass Green markers to be the absolute stars of the show. It looks incredibly high-end and clean.
 
-    URL: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
 
 2. Carto "Dark Matter" (The "Tech" look)
 
 If you want a dark mode map, this is the gold standard. The blue connecting lines will look like glowing neon against this background.
 
-    URL: https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
 
 3. Esri World Imagery (The Satellite look)
 
 If you want to see actual buildings and grass, Esri provides a high-quality satellite tile layer for free.
 
-    URL: https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+}).addTo(map);
+
+Here are the specific L.tileLayer code blocks for the best free alternatives. You can simply copy and paste the one that fits your aesthetic best.
+1. Carto Positron (Light & Minimal)
+
+This is the "Apple Maps" style. It is the cleanest option and makes your purple and green markers stand out perfectly.
+JavaScript
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+
+2. Carto Dark Matter (High-Tech Dark Mode)
+
+If you want a modern, "command center" feel. The blue connecting lines will look like neon lights against this background.
+JavaScript
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+
+4. Carto Voyager (Soft & Colorful)
+
+This is a middle ground—it has more color than Positron (parks are green, water is soft blue) but is still much cleaner than standard OpenStreetMap.
+JavaScript
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
