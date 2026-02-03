@@ -24,13 +24,34 @@
             height: 600px; width: 100%; max-width: 1100px; 
             border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; 
         }
+
+        /* CUSTOM MARDI GRAS PIN CSS */
+        .mardi-gras-marker {
+            background-color: #800080; /* Purple */
+            border: 3px solid #00FF00;  /* Green */
+            border-radius: 50% 50% 50% 0;
+            width: 30px !important;
+            height: 30px !important;
+            transform: rotate(-45deg);
+            box-shadow: 0 0 10px #FFD700; /* Gold Glow */
+        }
+        /* Inner dot for the pin */
+        .mardi-gras-marker::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            margin: 7px 0 0 7px;
+            background: #FFD700; /* Gold center */
+            position: absolute;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
 
     <div id="header">
         <h1 class="main-title">bioinnovationnetwork-nobic</h1>
-        <p>The <strong>Purple & Green</strong> circle is the NOBIC Hub. Happy Mardi Gras!</p>
+        <p>The <strong>Purple, Green, and Gold pin</strong> represents the NOBIC central hub.</p>
     </div>
 
     <div id="map"></div>
@@ -46,8 +67,24 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
+        // CREATE THE CUSTOM HUB ICON
+        var hubIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div class='mardi-gras-marker'></div>",
+            iconSize: [30, 42],
+            iconAnchor: [15, 42]
+        });
+
         var layerGroups = { "Connections": L.layerGroup().addTo(map) };
         var allMarkersForSearch = L.layerGroup();
+
+        // Marker Fix
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
 
         window.addEventListener('load', function() {
             setTimeout(function() { map.invalidateSize(); }, 500);
@@ -74,39 +111,24 @@
                         layerGroups[type] = L.layerGroup().addTo(map);
                     }
 
-                    var marker;
-
+                    var markerOptions = { title: row.name };
                     if (isHub) {
+                        markerOptions.icon = hubIcon;
+                        markerOptions.zIndexOffset = 1000;
                         hubPos = pos;
-                        // Mardi Gras Styled Hub
-                        marker = L.circleMarker(pos, {
-                            radius: 12,
-                            fillColor: "#800080", // Purple
-                            color: "#00FF00",     // Green border
-                            weight: 4,
-                            opacity: 1,
-                            fillOpacity: 0.9,
-                            zIndexOffset: 1000,
-                            title: row.name // Needed for search
-                        });
-                    } else {
-                        marker = L.marker(pos, { title: row.name });
-                        others.push(pos);
                     }
 
-                    marker.bindPopup("<b>" + row.name + "</b><br>" + row.description);
+                    var marker = L.marker(pos, markerOptions)
+                                  .bindPopup("<b>" + row.name + "</b><br>" + row.description);
+                    
                     marker.addTo(layerGroups[type]);
                     marker.addTo(allMarkersForSearch);
+                    if (!isHub) others.push(pos);
                 });
 
                 if (hubPos) {
                     others.forEach(function(p) {
-                        L.polyline([hubPos, p], { 
-                            color: '#FFD700', // Gold connections!
-                            weight: 3, 
-                            opacity: 0.5, 
-                            dashArray: '5, 10' 
-                        }).addTo(layerGroups["Connections"]);
+                        L.polyline([hubPos, p], { color: '#FFD700', weight: 3, opacity: 0.6, dashArray: '5, 10' }).addTo(layerGroups["Connections"]);
                     });
                 }
 
