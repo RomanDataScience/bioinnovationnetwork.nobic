@@ -25,23 +25,24 @@
             border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; 
         }
 
-        /* CUSTOM MARDI GRAS PIN CSS */
+        /* CUSTOM MARDI GRAS HUB PIN */
         .mardi-gras-marker {
-            background-color: #FFD700; /* Gold Glow */
-            border: 1px solid #013220;  /* Green */
+            background-color: #800080; /* Royal Purple */
+            border: 1px solid #013220;  /* English Green (Deep Grass Green) */
             border-radius: 50% 50% 50% 0;
-            width: 30px !important;
-            height: 30px !important;
+            width: 32px !important;    /* Slightly larger to stand out */
+            height: 32px !important;
             transform: rotate(-45deg);
-            box-shadow: 0 0 10px #800080; /* Purple */
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); /* Vibrant Gold Glow */
         }
-        /* Inner dot for the pin */
+        
+        /* The Gold Center Dot */
         .mardi-gras-marker::after {
             content: '';
             width: 10px;
             height: 10px;
-            margin: 7px 0 0 7px;
-            background: #FFD700; /* Gold center */
+            margin: 8px 0 0 8px;
+            background: #FFD700; /* Gold */
             position: absolute;
             border-radius: 50%;
         }
