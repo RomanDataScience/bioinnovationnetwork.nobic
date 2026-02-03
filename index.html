@@ -30,7 +30,7 @@
 
     <div id="header">
         <h1 class="main-title">bioinnovationnetwork-nobic</h1>
-        <p>Explore the network: Orange marker represents the central hub.</p>
+        <p>The <strong>vibrant gold marker</strong> represents the NOBIC central hub.</p>
     </div>
 
     <div id="map"></div>
@@ -46,9 +46,9 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Define Gold Icon
+        // Vibrant Metallic Gold Icon
         var goldIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41],
             iconAnchor: [12, 41],
@@ -91,9 +91,13 @@
                         layerGroups[type] = L.layerGroup().addTo(map);
                     }
 
+                    // SEARCH TITLE
                     var markerOptions = { title: row.name };
+
                     if (isHub) {
                         markerOptions.icon = goldIcon;
+                        // ALWAYS ON TOP: Set Z-Index very high
+                        markerOptions.zIndexOffset = 1000;
                         hubPos = pos;
                     }
 
@@ -118,6 +122,7 @@
                     layer: allMarkersForSearch,
                     propertyName: 'title',
                     marker: false,
+                    initial: false, // Allows searching anywhere in the string
                     moveToLocation: function(latlng) { map.setView(latlng, 12); }
                 });
                 map.addControl(searchControl);
