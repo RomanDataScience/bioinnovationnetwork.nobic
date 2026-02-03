@@ -79,43 +79,53 @@
             map.invalidateSize(); 
         }, 800);
 
-    // 5. Load data and connect with lines
-    var pointList = []; // Array to store coordinates for the line
-
-    Papa.parse("data.csv", {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-            results.data.forEach(function(row) {
-                var lat = parseFloat(row.lat);
-                var lng = parseFloat(row.lng);
-                
-                if(!isNaN(lat) && !isNaN(lng)) {
-                    var coord = [lat, lng];
-                    pointList.push(coord); // Add to our list for the line
+        // 5. Load data and create Star Graph
+        Papa.parse("data.csv", {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                var hubLatLng = null;
+                var others = [];
+        
+                // First pass: Find NOBIC and add all markers
+                results.data.forEach(function(row) {
+                    var lat = parseFloat(row.lat);
+                    var lng = parseFloat(row.lng);
+                    if(isNaN(lat) || isNaN(lng)) return;
+        
+                    var pos = [lat, lng];
                     
-                    // Add marker
-                    L.marker(coord)
+                    // If this row is NOBIC, save it as our Hub
+                    if (row.name.toUpperCase() === "NOBIC") {
+                        hubLatLng = pos;
+                    } else {
+                        others.push(pos);
+                    }
+        
+                    // Add the marker for every location
+                    L.marker(pos)
                      .bindPopup("<b>" + row.name + "</b><br>" + (row.description || ""))
                      .addTo(map);
+                });
+        
+                // Second pass: Draw lines from Hub to everyone else
+                if (hubLatLng) {
+                    others.forEach(function(dest) {
+                        L.polyline([hubLatLng, dest], {
+                            color: '#004a99',
+                            weight: 2,
+                            opacity: 0.5,
+                            dashArray: '5, 10' // Makes the spokes look like a network
+                        }).addTo(map);
+                    });
+                    
+                    // Zoom map to show the whole network
+                    var bounds = L.latLngBounds([hubLatLng].concat(others));
+                    map.fitBounds(bounds, {padding: [50, 50]});
                 }
-            });
-    
-            // DRAW THE LINE: Only if we have 2 or more points
-            if (pointList.length > 1) {
-                var polyline = L.polyline(pointList, {
-                    color: '#004a99', // Matches your header blue
-                    weight: 3,        // Thickness of the line
-                    opacity: 0.6,     // Transparency
-                    dashArray: '10, 10' // Makes it a dashed line (optional)
-                }).addTo(map);
-                
-                // Adjust the map view to fit all points automatically
-                map.fitBounds(polyline.getBounds(), {padding: [50, 50]});
             }
-        }
-    });
+        });
     </script>
 </body>
 </html>
