@@ -11,7 +11,7 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, sans-serif; 
             margin: 0; padding: 20px; 
             background-color: #f8f9fa; 
             display: flex; flex-direction: column; align-items: center; 
@@ -30,7 +30,7 @@
 
     <div id="header">
         <h1 class="main-title">bioinnovationnetwork-nobic</h1>
-        <p>The <strong>vibrant gold marker</strong> represents the NOBIC central hub.</p>
+        <p>The <strong>Purple & Green</strong> circle is the NOBIC Hub. Happy Mardi Gras!</p>
     </div>
 
     <div id="map"></div>
@@ -46,25 +46,8 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Vibrant Metallic Gold Icon
-        var goldIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
         var layerGroups = { "Connections": L.layerGroup().addTo(map) };
         var allMarkersForSearch = L.layerGroup();
-
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        });
 
         window.addEventListener('load', function() {
             setTimeout(function() { map.invalidateSize(); }, 500);
@@ -91,28 +74,39 @@
                         layerGroups[type] = L.layerGroup().addTo(map);
                     }
 
-                    // SEARCH TITLE
-                    var markerOptions = { title: row.name };
+                    var marker;
 
                     if (isHub) {
-                        markerOptions.icon = goldIcon;
-                        // ALWAYS ON TOP: Set Z-Index very high
-                        markerOptions.zIndexOffset = 1000;
                         hubPos = pos;
+                        // Mardi Gras Styled Hub
+                        marker = L.circleMarker(pos, {
+                            radius: 12,
+                            fillColor: "#800080", // Purple
+                            color: "#00FF00",     // Green border
+                            weight: 4,
+                            opacity: 1,
+                            fillOpacity: 0.9,
+                            zIndexOffset: 1000,
+                            title: row.name // Needed for search
+                        });
+                    } else {
+                        marker = L.marker(pos, { title: row.name });
+                        others.push(pos);
                     }
 
-                    var marker = L.marker(pos, markerOptions)
-                                  .bindPopup("<b>" + row.name + "</b><br>" + row.description);
-                    
+                    marker.bindPopup("<b>" + row.name + "</b><br>" + row.description);
                     marker.addTo(layerGroups[type]);
                     marker.addTo(allMarkersForSearch);
-
-                    if (!isHub) others.push(pos);
                 });
 
                 if (hubPos) {
                     others.forEach(function(p) {
-                        L.polyline([hubPos, p], { color: '#004a99', weight: 1.5, opacity: 0.3, dashArray: '5, 10' }).addTo(layerGroups["Connections"]);
+                        L.polyline([hubPos, p], { 
+                            color: '#FFD700', // Gold connections!
+                            weight: 3, 
+                            opacity: 0.5, 
+                            dashArray: '5, 10' 
+                        }).addTo(layerGroups["Connections"]);
                     });
                 }
 
@@ -122,7 +116,7 @@
                     layer: allMarkersForSearch,
                     propertyName: 'title',
                     marker: false,
-                    initial: false, // Allows searching anywhere in the string
+                    initial: false,
                     moveToLocation: function(latlng) { map.setView(latlng, 12); }
                 });
                 map.addControl(searchControl);
