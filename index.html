@@ -79,24 +79,43 @@
             map.invalidateSize(); 
         }, 800);
 
-        // 5. Load and Parse data.csv
-        Papa.parse("data.csv", {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                results.data.forEach(function(row) {
-                    var lat = parseFloat(row.lat);
-                    var lng = parseFloat(row.lng);
+    // 5. Load data and connect with lines
+    var pointList = []; // Array to store coordinates for the line
+
+    Papa.parse("data.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            results.data.forEach(function(row) {
+                var lat = parseFloat(row.lat);
+                var lng = parseFloat(row.lng);
+                
+                if(!isNaN(lat) && !isNaN(lng)) {
+                    var coord = [lat, lng];
+                    pointList.push(coord); // Add to our list for the line
                     
-                    if(!isNaN(lat) && !isNaN(lng)) {
-                        L.marker([lat, lng])
-                         .bindPopup("<b>" + row.name + "</b><br>" + (row.description || ""))
-                         .addTo(map);
-                    }
-                });
+                    // Add marker
+                    L.marker(coord)
+                     .bindPopup("<b>" + row.name + "</b><br>" + (row.description || ""))
+                     .addTo(map);
+                }
+            });
+    
+            // DRAW THE LINE: Only if we have 2 or more points
+            if (pointList.length > 1) {
+                var polyline = L.polyline(pointList, {
+                    color: '#004a99', // Matches your header blue
+                    weight: 3,        // Thickness of the line
+                    opacity: 0.6,     // Transparency
+                    dashArray: '10, 10' // Makes it a dashed line (optional)
+                }).addTo(map);
+                
+                // Adjust the map view to fit all points automatically
+                map.fitBounds(polyline.getBounds(), {padding: [50, 50]});
             }
-        });
+        }
+    });
     </script>
 </body>
 </html>
