@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bioinnovation Network Map</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-search@3.0.2/dist/leaflet-search.min.css" />
     
@@ -11,15 +12,15 @@
         * { box-sizing: border-box; }
         body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; display: flex; flex-direction: column; align-items: center; }
         #header { width: 100%; max-width: 1100px; margin-bottom: 20px; }
-        h1 { margin: 0; font-size: 28px; color: #004a99; }
-        #map { height: 650px; width: 100%; max-width: 1100px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; }
+        h1 { margin: 0; font-size: 26px; color: #004a99; }
+        #map { height: 600px; width: 100%; max-width: 1100px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; }
     </style>
 </head>
 <body>
 
     <div id="header">
         <h1># bioinnovationnetwork-nobic</h1>
-        <p>Search by name using the magnifying glass or filter by type.</p>
+        <p>Search by name (magnifying glass) or filter by category (top-right menu).</p>
     </div>
 
     <div id="map"></div>
@@ -35,12 +36,11 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Layer groups for Toggles
+        // 1. Groups for Toggles and Search
         var layerGroups = { "Connections": L.layerGroup().addTo(map) };
-        // We need a specific group for the Search bar to look through
-        var searchableMarkers = L.layerGroup().addTo(map);
+        var allMarkersForSearch = L.layerGroup(); // Hidden group for search to look through
 
-        // GitHub Marker Fix
+        // Marker Icon Fix
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -58,7 +58,7 @@
             skipEmptyLines: true,
             complete: function(results) {
                 var hubPos = null;
-                var otherPosList = [];
+                var others = [];
 
                 results.data.forEach(function(row) {
                     var lat = parseFloat(row.lat);
@@ -68,40 +68,42 @@
                     var pos = [lat, lng];
                     var type = row.type || "General";
 
+                    // Initialize group if new type
                     if (!layerGroups[type]) {
                         layerGroups[type] = L.layerGroup().addTo(map);
                     }
 
-                    // Create marker with a 'title' property for the search engine to find
+                    // Create marker with 'title' for search engine
                     var marker = L.marker(pos, { title: row.name })
                                   .bindPopup("<b>" + row.name + "</b><br>" + row.description);
                     
                     marker.addTo(layerGroups[type]);
-                    marker.addTo(searchableMarkers);
+                    marker.addTo(allMarkersForSearch);
 
                     if (row.name.trim().toUpperCase() === "NOBIC") {
                         hubPos = pos;
                     } else {
-                        otherPosList.push(pos);
+                        others.push(pos);
                     }
                 });
 
+                // Connections
                 if (hubPos) {
-                    otherPosList.forEach(function(p) {
+                    others.forEach(function(p) {
                         L.polyline([hubPos, p], { color: '#004a99', weight: 1.5, opacity: 0.3, dashArray: '5, 10' }).addTo(layerGroups["Connections"]);
                     });
                 }
 
-                // Add Toggle Menu
+                // ADD TOGGLE MENU
                 L.control.layers(null, layerGroups, { collapsed: false }).addTo(map);
 
-                // ADD SEARCH CONTROL
+                // ADD SEARCH BAR
                 var searchControl = new L.Control.Search({
-                    layer: searchableMarkers,
-                    propertyName: 'title', // This matches the { title: row.name } we set above
+                    layer: allMarkersForSearch,
+                    propertyName: 'title',
                     marker: false,
-                    moveToLocation: function(latlng, title, map) {
-                        map.setView(latlng, 12); // Zoom in when found
+                    moveToLocation: function(latlng) {
+                        map.setView(latlng, 12);
                     }
                 });
                 map.addControl(searchControl);
