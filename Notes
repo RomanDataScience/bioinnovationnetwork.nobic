@@ -1,0 +1,17 @@
+1. Carto "Positron" (The "Apple Maps" look)
+
+This is a light, grayscale map. It is perfect if you want your Purple and Grass Green markers to be the absolute stars of the show. It looks incredibly high-end and clean.
+
+    URL: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
+
+2. Carto "Dark Matter" (The "Tech" look)
+
+If you want a dark mode map, this is the gold standard. The blue connecting lines will look like glowing neon against this background.
+
+    URL: https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
+
+3. Esri World Imagery (The Satellite look)
+
+If you want to see actual buildings and grass, Esri provides a high-quality satellite tile layer for free.
+
+    URL: https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
