@@ -10,7 +10,6 @@
         body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; display: flex; flex-direction: column; align-items: center; }
         #header { width: 100%; max-width: 1100px; margin-bottom: 20px; }
         h1 { margin: 0; font-size: 28px; color: #004a99; }
-        p { margin: 8px 0 0 0; color: #6c757d; }
         #map { height: 650px; width: 100%; max-width: 1100px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e9ecef; }
     </style>
 </head>
@@ -18,7 +17,7 @@
 
     <div id="header">
         <h1># bioinnovationnetwork-nobic</h1>
-        <p>Map of bioinnovation organizations & companies</p>
+        <p>Use the menu in the top-right to filter by type.</p>
     </div>
 
     <div id="map"></div>
@@ -27,51 +26,76 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
-        // 1. Create separate Layer Groups
-        var groups = {
-            "Hubs": L.layerGroup().addTo(map),
-            "Universities": L.layerGroup().addTo(map),
-            "Startups": L.layerGroup().addTo(map),
+        var map = L.map('map').setView([30.1, -90.5], 8);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // 1. Initialize Layer Groups
+        var layerGroups = {
             "Connections": L.layerGroup().addTo(map)
         };
-        
-        // 2. Add the Toggle Control to the top-right
-        L.control.layers(null, groups).addTo(map);
-        
+
+        // 2. Fix for missing marker icons
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
+
+        // 3. Force map redraw to prevent gray square
+        window.addEventListener('load', function() {
+            setTimeout(function() { map.invalidateSize(); }, 500);
+        });
+
+        // 4. Load Data and Build Filters
         Papa.parse("data.csv", {
             download: true,
             header: true,
             skipEmptyLines: true,
             complete: function(results) {
-                var hubLatLng = null;
-        
+                var hubPos = null;
+                var otherPosList = [];
+
                 results.data.forEach(function(row) {
                     var lat = parseFloat(row.lat);
                     var lng = parseFloat(row.lng);
-                    if(isNaN(lat) || isNaN(lng)) return;
-        
+                    if (isNaN(lat) || isNaN(lng)) return;
+
                     var pos = [lat, lng];
-                    var marker = L.marker(pos).bindPopup("<b>" + row.name + "</b><br>" + row.description);
-        
-                    // Assign marker to a group based on the "type" column
-                    if (row.name.toUpperCase() === "NOBIC") {
-                        hubLatLng = pos;
-                        marker.addTo(groups["Hubs"]);
-                    } else if (row.type === "University") {
-                        marker.addTo(groups["Universities"]);
-                    } else {
-                        marker.addTo(groups["Startups"]);
+                    var type = row.type || "General";
+
+                    // Create layer group for this type if it doesn't exist
+                    if (!layerGroups[type]) {
+                        layerGroups[type] = L.layerGroup().addTo(map);
                     }
-        
-                    // Draw lines and add them to the "Connections" group
-                    if (hubLatLng && row.name.toUpperCase() !== "NOBIC") {
-                        L.polyline([hubLatLng, pos], {
-                            color: '#004a99', 
-                            weight: 2, 
-                            dashArray: '5, 10'
-                        }).addTo(groups["Connections"]);
+
+                    var marker = L.marker(pos).bindPopup("<b>" + row.name + "</b><br>" + row.description);
+                    marker.addTo(layerGroups[type]);
+
+                    if (row.name.trim().toUpperCase() === "NOBIC") {
+                        hubPos = pos;
+                    } else {
+                        otherPosList.push(pos);
                     }
                 });
+
+                // Draw lines from Hub to others
+                if (hubPos) {
+                    otherPosList.forEach(function(p) {
+                        L.polyline([hubPos, p], {
+                            color: '#004a99',
+                            weight: 1.5,
+                            opacity: 0.3,
+                            dashArray: '5, 10'
+                        }).addTo(layerGroups["Connections"]);
+                    });
+                }
+
+                // Add the selection toggle menu
+                L.control.layers(null, layerGroups, { collapsed: false }).addTo(map);
             }
         });
     </script>
