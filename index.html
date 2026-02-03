@@ -27,63 +27,51 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
-        var map = L.map('map').setView([29.95, -90.07], 8);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Fix for GitHub Pages marker bug
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        });
-
-        setTimeout(function(){ map.invalidateSize(); }, 800);
-
+        // 1. Create separate Layer Groups
+        var groups = {
+            "Hubs": L.layerGroup().addTo(map),
+            "Universities": L.layerGroup().addTo(map),
+            "Startups": L.layerGroup().addTo(map),
+            "Connections": L.layerGroup().addTo(map)
+        };
+        
+        // 2. Add the Toggle Control to the top-right
+        L.control.layers(null, groups).addTo(map);
+        
         Papa.parse("data.csv", {
             download: true,
             header: true,
             skipEmptyLines: true,
             complete: function(results) {
                 var hubLatLng = null;
-                var others = [];
-
+        
                 results.data.forEach(function(row) {
                     var lat = parseFloat(row.lat);
                     var lng = parseFloat(row.lng);
                     if(isNaN(lat) || isNaN(lng)) return;
-
+        
                     var pos = [lat, lng];
-                    
-                    // Check for NOBIC as the hub
-                    if (row.name && row.name.trim().toUpperCase() === "NOBIC") {
+                    var marker = L.marker(pos).bindPopup("<b>" + row.name + "</b><br>" + row.description);
+        
+                    // Assign marker to a group based on the "type" column
+                    if (row.name.toUpperCase() === "NOBIC") {
                         hubLatLng = pos;
+                        marker.addTo(groups["Hubs"]);
+                    } else if (row.type === "University") {
+                        marker.addTo(groups["Universities"]);
                     } else {
-                        others.push(pos);
+                        marker.addTo(groups["Startups"]);
                     }
-
-                    L.marker(pos)
-                     .bindPopup("<b>" + row.name + "</b><br>" + (row.description || ""))
-                     .addTo(map);
-                });
-
-                // Draw lines from Hub to others
-                if (hubLatLng && others.length > 0) {
-                    others.forEach(function(dest) {
-                        L.polyline([hubLatLng, dest], {
-                            color: '#004a99',
-                            weight: 2,
-                            opacity: 0.5,
+        
+                    // Draw lines and add them to the "Connections" group
+                    if (hubLatLng && row.name.toUpperCase() !== "NOBIC") {
+                        L.polyline([hubLatLng, pos], {
+                            color: '#004a99', 
+                            weight: 2, 
                             dashArray: '5, 10'
-                        }).addTo(map);
-                    });
-                    
-                    var bounds = L.latLngBounds([hubLatLng].concat(others));
-                    map.fitBounds(bounds, {padding: [50, 50]});
-                }
+                        }).addTo(groups["Connections"]);
+                    }
+                });
             }
         });
     </script>
